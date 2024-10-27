@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
 import User from '../model/user.js';
 import { APP_CONSTANTS } from '../util/constants.js';
 import catchErrors from '../util/errorUtil.js';
+import { sendEmail } from '../util/emailUtil.js';
 
 dotenv.config();
 
@@ -102,25 +102,11 @@ const forgotPassword = async (req, res) => {
       }
     );
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const resetLink = `http://localhost:8080/users/reset-password?token=${resetToken}`;
+    const subject = 'Password Reset Request';
+    const text = `Hello, You requested to reset your password. Click the link below to reset it:\n\n${resetLink}\n\nIf you did not request this, please ignore this email.`;
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset Request',
-      text: `Hello, You requested to reset your password. Click the link below to reset it:\n\n${resetLink}\n\nIf you did not request this, please ignore this email.`,
-    };
-
-    // Send the reset email
-    await transporter.sendMail(mailOptions);
+    await sendEmail(email, subject, text);
 
     return res.status(200).json({
       msg: 'Password reset link sent to email',
