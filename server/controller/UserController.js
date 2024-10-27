@@ -21,9 +21,11 @@ const createUser = async (req, res) => {
     const hashPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({ username, email, password: hashPassword });
+    const { password: _, ...userWithoutPassword } = user.toJSON(); // Exclude password
+
     return res.status(201).json({
       msg: 'User Registration Success!',
-      data: user,
+      data: userWithoutPassword,
       status: APP_CONSTANTS.OPERATION_SUCCESS,
     });
   } catch (error) {
@@ -55,7 +57,7 @@ const loginUser = async (req, res) => {
     return res.status(200).json({
       msg: 'Login success',
       token,
-      data: { email, username, id, createdAt, updatedAt },
+      data: { id, email, username, createdAt, updatedAt },
     });
   } catch (error) {
     return catchErrors(error, res);
@@ -72,9 +74,11 @@ const getUserData = async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    const { password: _, ...userWithoutPassword } = user.toJSON(); // Exclude password
+
     return res.status(200).json({
       msg: 'SUCCESS',
-      data: user,
+      data: userWithoutPassword,
     });
   } catch (err) {
     return catchErrors(err, res);
